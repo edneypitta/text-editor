@@ -11,7 +11,7 @@ let render (buffer: Buffer, cursor: Cursor) =
     Console.CursorTop <- cursor.Row
     Console.CursorLeft <- cursor.Col
 
-let handleInput (buffer:Buffer, cursor: Cursor) = 
+let handleInput (buffer, cursor) = 
     let a = Console.ReadKey (true)
     match a.Key with
     | ConsoleKey.UpArrow -> (buffer, up cursor, CursorMove)
