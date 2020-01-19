@@ -14,16 +14,12 @@ let render (buffer: Buffer, cursor: Cursor) =
 let handleInput (buffer:Buffer, cursor: Cursor) = 
     let a = Console.ReadKey (true)
     match a.Key with
-    | ConsoleKey.UpArrow -> (buffer, { cursor with Row = cursor.Row - 1 }, CursorMove)
-    | ConsoleKey.DownArrow -> (buffer, { cursor with Row = cursor.Row + 1 }, CursorMove)
-    | ConsoleKey.LeftArrow -> (buffer, { cursor with Col = cursor.Col - 1 }, CursorMove)
-    | ConsoleKey.RightArrow -> (buffer, { cursor with Col = cursor.Col + 1 }, CursorMove)
-    | ConsoleKey.Backspace -> (List.take (cursor.Row) buffer @ 
-                               [buffer.[cursor.Row].Remove(cursor.Col, 1)] @
-                               List.skip (cursor.Row + 1) buffer, { cursor with Col = cursor.Col - 1 }, CharDeleted)
-    | _ -> (List.take (cursor.Row) buffer @ 
-            [buffer.[cursor.Row].Insert(cursor.Col, a.KeyChar.ToString())] @
-            List.skip (cursor.Row + 1) buffer, { cursor with Col = cursor.Col + 1 }, CharInserted)
+    | ConsoleKey.UpArrow -> (buffer, up cursor, CursorMove)
+    | ConsoleKey.DownArrow -> (buffer, down cursor, CursorMove)
+    | ConsoleKey.LeftArrow -> (buffer, left cursor, CursorMove)
+    | ConsoleKey.RightArrow -> (buffer, right cursor, CursorMove)
+    | ConsoleKey.Backspace -> (removeChar (buffer, cursor), left cursor, CharDeleted)
+    | _ -> (insertChar (buffer, cursor, a.KeyChar.ToString()), right cursor, CharInserted)
 
 [<EntryPoint>]
 let main argv =
