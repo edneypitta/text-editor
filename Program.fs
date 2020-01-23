@@ -1,17 +1,16 @@
 ﻿open System
 open Editor
 
-type Action = CursorMove | CharInserted | CharDeleted
+type Action = CursorMove | CharInserted | CharDeleted | Enter
 
-let render (buffer: Buffer) cursor = 
-    let (Buffer lines) = buffer
+let render (Buffer lines) cursor = 
     Console.Clear ()
     Console.SetCursorPosition (0, 0)
     for str in lines do
         Console.WriteLine (str)
     Console.SetCursorPosition (cursor.Col, cursor.Row)
 
-let handleInput (buffer: Buffer) cursor = 
+let handleInput buffer cursor = 
     let keyInfo = Console.ReadKey (true)
     let char = keyInfo.KeyChar.ToString()
 
@@ -21,11 +20,18 @@ let handleInput (buffer: Buffer) cursor =
     | ConsoleKey.LeftArrow -> (buffer, left cursor, CursorMove)
     | ConsoleKey.RightArrow -> (buffer, right cursor, CursorMove)
     | ConsoleKey.Backspace -> (removeChar buffer cursor, left cursor, CharDeleted)
+    | ConsoleKey.Enter -> (splitLine buffer cursor, cursor |> down |> leftMost, Enter)
     | _ -> (insertChar buffer cursor char, right cursor, CharInserted)
+
+let writeRow (Buffer lines) row =
+    Console.SetCursorPosition (0, row)
+    Console.Write(new string(' ', Console.BufferWidth)); 
+    Console.SetCursorPosition (0, row)
+    Console.Write (lines.[row])
 
 [<EntryPoint>]
 let main _ =
-    let mutable buffer = Buffer ["first"; "second"; "second"; "second"; "second"]
+    let mutable buffer = Buffer ["first"; "second"; "third"; "fourth"]
     let mutable cursor = { Row = 1; Col = 2 }
 
     render buffer cursor
@@ -36,11 +42,13 @@ let main _ =
         cursor <- newCursor
 
         match action with
-        | CursorMove -> Console.SetCursorPosition (newCursor.Col, newCursor.Row)
         | CharInserted | CharDeleted -> 
-            Console.SetCursorPosition (0, newCursor.Row)
-            Console.Write(new string(' ', Console.BufferWidth)); 
-            Console.SetCursorPosition (0, newCursor.Row)
-            Console.Write (match newBuffer with Buffer b -> b.[newCursor.Row])
-            Console.SetCursorPosition (newCursor.Col, newCursor.Row)
+            writeRow buffer cursor.Row
+        | Enter -> 
+            let (Buffer lines) = buffer
+            for row in [(cursor.Row - 1)..lines.Length - 1] do
+                writeRow buffer row
+        | _ -> ()
+
+        Console.SetCursorPosition (cursor.Col, cursor.Row)
     0
