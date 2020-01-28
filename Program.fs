@@ -36,9 +36,9 @@ let main _ =
     let mutable editor = {
         Cursor = { Row = 0; Col = 0; Offset = 0 }
         PieceTable = { 
-            Original = "the quick brown fox\njumped over the lazy dog"
+            Original = "the quick brown"
             Add = ""
-            Pieces = [{ Start = 0; Length = 44; Source = Original }]
+            Pieces = [{ Start = 0; Length = 15; Source = Original }]
         }
     }
 

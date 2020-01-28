@@ -40,28 +40,36 @@
                             | (offset, None) -> 
                                 let newOffset = offset + elem.Length
 
-                                if newOffset >= cursor.Offset then (newOffset, Some elem)
+                                if newOffset >= cursor.Offset then (offset, Some elem)
                                 else (newOffset, None)
                             ) (0, Option<Piece>.None) 
 
-        let pieces = match optionCurrentPiece with
-                     | None -> pieceTable.Pieces
-                     | Some currentPiece ->
-                         pieceTable.Pieces |>
-                         List.fold (fun acc elem -> 
-                             acc @
-                             match elem with
-                             | piece when piece = currentPiece && piece.Source = Add && bufferOffset = cursor.Offset -> 
-                                 [
-                                     { Start = piece.Start; Length = piece.Length + 1; Source = Add }
-                                 ]
-                             | piece when piece = currentPiece -> 
-                                     [
-                                         { Start = currentPiece.Start; Length = cursor.Offset; Source = currentPiece.Source }
-                                         { Start = pieceTable.Add.Length; Length = 1; Source = Add }
-                                         { Start = cursor.Offset; Length = currentPiece.Length - cursor.Offset; Source = currentPiece.Source }
-                                     ]
-                             | piece -> [piece]) []
+        let pieces = 
+          match optionCurrentPiece with 
+          | None -> pieceTable.Pieces
+          | Some currentPiece ->
+            pieceTable.Pieces |>
+            List.fold (fun acc elem -> 
+               acc @
+               match elem with
+               | piece when piece = currentPiece && piece.Source = Add && bufferOffset = cursor.Offset -> 
+                   [
+                       { Start = piece.Start; Length = piece.Length + 1; Source = Add }
+                   ]
+               | piece when piece = currentPiece -> 
+                       [
+                           { 
+                             Start = currentPiece.Start
+                             Length = cursor.Offset - bufferOffset
+                             Source = currentPiece.Source }
+                           { Start = pieceTable.Add.Length; Length = 1; Source = Add }
+                           { 
+                             Start = currentPiece.Start + (cursor.Offset - bufferOffset)
+                             Length = currentPiece.Length - (cursor.Offset - bufferOffset) 
+                             Source = currentPiece.Source }
+                       ] |>
+                       List.filter (fun piece -> piece.Length > 0)
+               | piece -> [piece]) []
 
         let newPieceTable = { pieceTable with Pieces = pieces; Add = pieceTable.Add + char }
         { PieceTable = newPieceTable; Cursor = rightC cursor }
