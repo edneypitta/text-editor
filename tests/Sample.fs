@@ -7,8 +7,25 @@ open EditorPT
 let tests =
   testList "samples" [
     testCase "universe exists (╭ರᴥ•́)" <| fun _ ->
-      let subject = true
-      Expect.isTrue subject "I compute, therefore I am."
+      let editor = {
+        PieceTable = {
+          Original = "the quick brown"
+          Add = ""
+          Pieces = []
+        }
+        Cursor = {
+          Row = 0
+          Col = 0
+          Offset = 0
+        }
+      }
+
+      let { PieceTable = pieceTable } = insertChar editor "a"
+
+
+
+      Expect.isTrue true "I should fail because the subject is false"
+
 
     testCase "when true is not (should fail)" <| fun _ ->
       let subject = false
