@@ -45,9 +45,9 @@
                             ) (0, Option<Piece>.None) 
 
         let pieces = 
-          match optionCurrentPiece with 
-              | None -> pieceTable.Pieces
-              | Some currentPiece -> 
+            match optionCurrentPiece with 
+                | None -> pieceTable.Pieces
+                | Some currentPiece -> 
                 pieceTable.Pieces |>
                 List.fold (fun acc elem -> 
                     acc @
