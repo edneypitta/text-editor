@@ -1,62 +1,54 @@
 ﻿open System
-open EditorPT
+open Editor
 
 type Action = CursorMove | CharInserted | CharDeleted | Enter
 
-let render { PieceTable = pieceTable; Cursor = cursor } =
+let render (Buffer lines) cursor = 
     Console.Clear ()
     Console.SetCursorPosition (0, 0)
-    for piece in pieceTable.Pieces do
-        match piece.Source with
-        | Original -> Console.Write(pieceTable.Original.Substring(piece.Start, piece.Length))
-        | Add -> Console.Write(pieceTable.Add.Substring(piece.Start, piece.Length))
+    for str in lines do
+        Console.WriteLine (str)
     Console.SetCursorPosition (cursor.Col, cursor.Row)
 
-let handleInput editor = 
+let handleInput buffer cursor = 
     let keyInfo = Console.ReadKey (true)
     let char = keyInfo.KeyChar.ToString()
 
     match keyInfo.Key with
-    //| ConsoleKey.UpArrow -> (buffer, up cursor, CursorMove)
-    //| ConsoleKey.DownArrow -> (buffer, down cursor, CursorMove)
-    | ConsoleKey.LeftArrow -> (left editor, CursorMove)
-    | ConsoleKey.RightArrow -> (right editor, CursorMove)
-    //| ConsoleKey.Backspace -> (removeChar buffer cursor, left cursor, CharDeleted)
-    //| ConsoleKey.Enter -> (splitLine buffer cursor, cursor |> down |> leftMost, Enter)
-    | _ -> (insertChar editor char, CharInserted)
+    | ConsoleKey.UpArrow -> (buffer, up cursor, CursorMove)
+    | ConsoleKey.DownArrow -> (buffer, down cursor, CursorMove)
+    | ConsoleKey.LeftArrow -> (buffer, left cursor, CursorMove)
+    | ConsoleKey.RightArrow -> (buffer, right cursor, CursorMove)
+    | ConsoleKey.Backspace -> (removeChar buffer cursor, left cursor, CharDeleted)
+    | ConsoleKey.Enter -> (splitLine buffer cursor, cursor |> down |> leftMost, Enter)
+    | _ -> (insertChar buffer cursor char, right cursor, CharInserted)
 
-    //let writeRow (Buffer lines) row =
-    //    Console.SetCursorPosition (0, row)
-    //    Console.Write(new string(' ', Console.BufferWidth)); 
-    //    Console.SetCursorPosition (0, row)
-    //    Console.Write (lines.[row])
+let writeRow (Buffer lines) row =
+    Console.SetCursorPosition (0, row)
+    Console.Write(new string(' ', Console.BufferWidth)); 
+    Console.SetCursorPosition (0, row)
+    Console.Write (lines.[row])
 
 [<EntryPoint>]
 let main _ =
-    let mutable editor = {
-        Cursor = { Row = 0; Col = 0; Offset = 0 }
-        PieceTable = { 
-            Original = "the quick brown"
-            Add = ""
-            Pieces = [{ Start = 0; Length = 15; Source = Original }]
-        }
-    }
+    let mutable buffer = Buffer [ "the quick brown fox"; "jumped over the lazy dog" ]
+    let mutable cursor = { Row = 0; Col = 7 }
 
-    render editor
+    render buffer cursor
 
     while true do
-        let (newEditor, action) = handleInput editor
-        editor <- newEditor
+        let (newBuffer, newCursor, action) = handleInput buffer cursor
+        buffer <- newBuffer
+        cursor <- newCursor
 
         match action with
-        //| CharInserted | CharDeleted -> 
-        //    writeRow buffer cursor.Row
         | CharInserted | CharDeleted -> 
-            render editor
-        //| Enter -> 
-        //    let (Buffer lines) = buffer
-        //    for row in [(cursor.Row - 1)..lines.Length - 1] do
-        //        writeRow buffer row
-        | CursorMove -> Console.SetCursorPosition (editor.Cursor.Col, editor.Cursor.Row)
+            writeRow buffer cursor.Row
+        | Enter -> 
+            let (Buffer lines) = buffer
+            for row in [(cursor.Row - 1)..lines.Length - 1] do
+                writeRow buffer row
         | _ -> ()
+
+        Console.SetCursorPosition (cursor.Col, cursor.Row)
     0
