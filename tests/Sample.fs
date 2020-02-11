@@ -1,54 +1,52 @@
 module Tests
 
 open Expecto
-open EditorPT
+open Editor
 
 [<Tests>]
 let tests =
-  testList "samples" [
-    testCase "universe exists (╭ರᴥ•́)" <| fun _ ->
+  testList "up" [
+    testCase "top row" <| fun _ ->
       let editor = {
-        PieceTable = {
-          Original = "the quick brown"
-          Add = ""
-          Pieces = []
-        }
-        Cursor = {
-          Row = 0
-          Col = 0
-          Offset = 0
-        }
+        Buffer = ["the quick brown fox"]
+        Cursor = { Row = 0; Col = 7; LastAttemptedCol = 7 }
       }
+      let { Cursor = cursor } = up editor
 
-      let { PieceTable = pieceTable } = insertChar editor "a"
+      Expect.equal cursor.Row 0 "Should stay in top row"
+      Expect.equal cursor.Col 7 "Should stay in current col"
+      Expect.equal cursor.LastAttemptedCol 7 "Should store last attempted row"
 
+    testCase "normal case" <| fun _ ->
+      let editor = {
+        Buffer = ["the quick brown fox"; "jumped over the lazy dog"]
+        Cursor = { Row = 1; Col = 7; LastAttemptedCol = 7 }
+      }
+      let { Cursor = cursor } = up editor
 
+      Expect.equal cursor.Row 0 "Should go up one row"
+      Expect.equal cursor.Col 7 "Should stay in current col"
+      Expect.equal cursor.LastAttemptedCol 7 "Should store last attempted row"
 
-      Expect.isTrue true "I should fail because the subject is false"
+    testCase "staying in max col possible" <| fun _ ->
+      let editor = {
+        Buffer = ["the quick"; "brown fox jumped over"]
+        Cursor = { Row = 1; Col = 15; LastAttemptedCol = 0 }
+      }
+      let { Cursor = cursor } = up editor
 
+      Expect.equal cursor.Row 0 "Should go up one row"
+      Expect.equal cursor.Col 8 "Should stay in max col possible"
+      Expect.equal cursor.LastAttemptedCol 15 "Should store last attempted row"
 
-    testCase "when true is not (should fail)" <| fun _ ->
-      let subject = false
-      Expect.isTrue subject "I should fail because the subject is false"
+    testCase "staying in max col possible and going back" <| fun _ ->
+      let editor = {
+        Buffer = ["the quick"; "brown"; "fox jumped over the lazy dog"]
+        Cursor = { Row = 2; Col = 7; LastAttemptedCol = 0 }
+      }
+      let { Cursor = cursor } = editor |> up |> up
 
-    testCase "I'm skipped (should skip)" <| fun _ ->
-      Tests.skiptest "Yup, waiting for a sunny day..."
-
-    testCase "I'm always fail (should fail)" <| fun _ ->
-      Tests.failtest "This was expected..."
-
-    testCase "contains things" <| fun _ ->
-      Expect.containsAll [| 2; 3; 4 |] [| 2; 4 |]
-                         "This is the case; {2,3,4} contains {2,4}"
-
-    testCase "contains things (should fail)" <| fun _ ->
-      Expect.containsAll [| 2; 3; 4 |] [| 2; 4; 1 |]
-                         "Expecting we have one (1) in there"
-
-    testCase "Sometimes I want to ༼ノಠل͟ಠ༽ノ ︵ ┻━┻" <| fun _ ->
-      Expect.equal "abcdëf" "abcdef" "These should equal"
-
-    test "I am (should fail)" {
-      "╰〳 ಠ 益 ಠೃ 〵╯" |> Expect.equal true false
-    }
+      Expect.equal cursor.Row 0 "Should go to top row"
+      Expect.equal cursor.Col 7 "Should stay in max col possible"
+      Expect.equal cursor.LastAttemptedCol 7 "Should store last attempted row"
   ]

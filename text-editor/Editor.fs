@@ -1,7 +1,8 @@
 ﻿module Editor
+  open Util
 
   type Buffer = string list
-  type Cursor = { Row: int; Col: int }
+  type Cursor = { Row: int; Col: int; LastAttemptedCol: int }
 
   type Editor = {
     Cursor: Cursor
@@ -29,27 +30,57 @@
                  ]
                | (_, line) -> [line]) []
 
-  let up cursor = { cursor with Row = cursor.Row - 1 }
-  let down cursor = { cursor with Row = cursor.Row + 1 }
-  let left cursor = { cursor with Col = cursor.Col - 1 }
-  let right cursor = { cursor with Col = cursor.Col + 1 }
-  let leftMost cursor = { cursor with Col = 0 }
+  let private moveRow editor newRow =
+    let lastAttempedCol = editor.Cursor.LastAttemptedCol
+    let newCursor = 
+      match editor.Cursor.Col with
+      | col when col > editor.Buffer.[newRow].Length ->
+        { Row = newRow; Col = editor.Buffer.[newRow].Length - 1; LastAttemptedCol = col }
+      | _ ->
+        { Row = newRow; Col = lastAttempedCol; LastAttemptedCol = lastAttempedCol }
+    { editor with Cursor = newCursor }         
 
-  let removeChar editor = 
-    {
-      Cursor = editor.Cursor |> down |> leftMost
-      Buffer = apply editor (fun line -> line.Remove(editor.Cursor.Col, 1))
-    }
+  let up editor =
+    match editor.Cursor.Row with
+    | 0 -> editor
+    | row -> moveRow editor (dec row)
+
+  let down editor =
+    match editor.Cursor.Row with
+    | row when row = dec editor.Buffer.Length -> editor
+    | row -> moveRow editor (inc row)
+
+  let left editor =
+    let col =  max 0 (dec editor.Cursor.Col)
+    { editor with Cursor = { editor.Cursor with Col = col; LastAttemptedCol = col } }
+
+  let right editor = 
+    let row = editor.Buffer.[editor.Cursor.Row]
+    let col = min (dec row.Length) (inc editor.Cursor.Col)
+    { editor with Cursor = { editor.Cursor with Col = col; LastAttemptedCol = col } }
+    
+  let leftMost editor =
+    { editor with Cursor = { editor.Cursor with Col = 0 } }
+
+  let removeChar editor =
+    match editor.Cursor.Col with
+    | 0 -> editor
+    | col -> 
+      { editor with
+          Cursor = { editor.Cursor with Col = dec col }
+          Buffer = apply editor (fun line -> line.Remove(col, 1))
+      }
   
   let insertChar editor char =
-    {
-      Cursor = editor.Cursor |> right
-      Buffer = apply editor (fun line -> line.Insert(editor.Cursor.Col, char)) 
+    let col = editor.Cursor.Col
+    { editor with
+        Cursor = { editor.Cursor with Col = inc col }
+        Buffer = apply editor (fun line -> line.Insert(col, char)) 
     }
 
   let enter editor =
-    {
-      Cursor = editor.Cursor |> down |> leftMost
-      Buffer = splitLine editor
+    { editor with
+        Cursor = { editor.Cursor with Col = 0; Row = inc editor.Cursor.Row }
+        Buffer = splitLine editor
     }
 

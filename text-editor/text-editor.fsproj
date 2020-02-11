@@ -1,15 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <RootNamespace>text_editor</RootNamespace>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>text_editor</RootNamespace>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="EditorPieceTable.fs" />
+    <Compile Include="Util.fs" />
     <Compile Include="Editor.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-
 </Project>
