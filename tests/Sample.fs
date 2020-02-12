@@ -31,22 +31,33 @@ let tests =
     testCase "staying in max col possible" <| fun _ ->
       let editor = {
         Buffer = ["the quick"; "brown fox jumped over"]
-        Cursor = { Row = 1; Col = 15; LastAttemptedCol = 0 }
+        Cursor = { Row = 1; Col = 15; LastAttemptedCol = 15 }
       }
       let { Cursor = cursor } = up editor
 
       Expect.equal cursor.Row 0 "Should go up one row"
-      Expect.equal cursor.Col 8 "Should stay in max col possible"
+      Expect.equal cursor.Col 9 "Should stay in max col possible"
       Expect.equal cursor.LastAttemptedCol 15 "Should store last attempted row"
 
     testCase "staying in max col possible and going back" <| fun _ ->
       let editor = {
         Buffer = ["the quick"; "brown"; "fox jumped over the lazy dog"]
-        Cursor = { Row = 2; Col = 7; LastAttemptedCol = 0 }
+        Cursor = { Row = 2; Col = 7; LastAttemptedCol = 7 }
       }
       let { Cursor = cursor } = editor |> up |> up
 
       Expect.equal cursor.Row 0 "Should go to top row"
       Expect.equal cursor.Col 7 "Should stay in max col possible"
       Expect.equal cursor.LastAttemptedCol 7 "Should store last attempted row"
+      
+    testCase "staying in max col possible twice" <| fun _ ->
+    let editor = {
+        Buffer = ["the quick"; "brown"; "fox jumped over the lazy dog"]
+        Cursor = { Row = 2; Col = 15; LastAttemptedCol = 15 }
+    }
+    let { Cursor = cursor } = editor |> up |> up
+      
+    Expect.equal cursor.Row 0 "Should go to top row"
+    Expect.equal cursor.Col 9 "Should stay in max col possible"
+    Expect.equal cursor.LastAttemptedCol 15 "Should store last attempted row"
   ]

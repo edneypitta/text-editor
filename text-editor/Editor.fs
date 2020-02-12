@@ -32,10 +32,13 @@
 
   let private moveRow editor newRow =
     let lastAttempedCol = editor.Cursor.LastAttemptedCol
+    let newRowLength = editor.Buffer.[newRow].Length
     let newCursor = 
       match editor.Cursor.Col with
-      | col when col > editor.Buffer.[newRow].Length ->
-        { Row = newRow; Col = editor.Buffer.[newRow].Length - 1; LastAttemptedCol = col }
+      | col when col > newRowLength ->
+        { Row = newRow; Col = newRowLength; LastAttemptedCol = col }
+      | _ when lastAttempedCol > newRowLength ->
+        { Row = newRow; Col = newRowLength; LastAttemptedCol = lastAttempedCol }
       | _ ->
         { Row = newRow; Col = lastAttempedCol; LastAttemptedCol = lastAttempedCol }
     { editor with Cursor = newCursor }         
@@ -56,7 +59,7 @@
 
   let right editor = 
     let row = editor.Buffer.[editor.Cursor.Row]
-    let col = min (dec row.Length) (inc editor.Cursor.Col)
+    let col = min row.Length (inc editor.Cursor.Col)
     { editor with Cursor = { editor.Cursor with Col = col; LastAttemptedCol = col } }
     
   let leftMost editor =
