@@ -1,5 +1,6 @@
 ﻿open System
 open Editor
+open Util
 
 type Action = CursorMove | CharInserted | CharDeleted | Enter
 
@@ -44,12 +45,12 @@ let main _ =
 
     match action with
     | CharInserted | CharDeleted -> 
-        writeRow editor.Buffer editor.Cursor.Row
+      writeRow editor.Buffer editor.Cursor.Row
     | Enter ->
-        let previousRow = editor.Cursor.Row - 1
-        let lastRow = editor.Buffer.Length - 1
-        for row in [previousRow..lastRow] do
-          writeRow editor.Buffer row
+      let previousRow = dec editor.Cursor.Row
+      let lastRow = dec editor.Buffer.Length
+      for row in [previousRow..lastRow] do
+        writeRow editor.Buffer row
     | _ -> ()
 
     Console.SetCursorPosition (editor.Cursor.Col, editor.Cursor.Row)
