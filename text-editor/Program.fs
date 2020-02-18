@@ -34,7 +34,7 @@ let writeRow (lines: Buffer) row =
 let main _ =
   let mutable editor = {
     Buffer = ["the quick"; "brown"; "fox jumped over the lazy dog"]
-    Cursor = { Row = 2; Col = 7; LastAttemptedCol = 7 }
+    Cursor = { Row = 2; Col = 15; LastAttemptedCol = 15 }
   }
 
   render editor

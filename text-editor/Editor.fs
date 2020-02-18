@@ -35,10 +35,10 @@
     let newRowLength = editor.Buffer.[newRow].Length
     let newCursor = 
       match editor.Cursor.Col with
-      | col when col > newRowLength ->
-        { Row = newRow; Col = newRowLength; LastAttemptedCol = col }
       | _ when lastAttempedCol > newRowLength ->
         { Row = newRow; Col = newRowLength; LastAttemptedCol = lastAttempedCol }
+      | col when col > newRowLength ->
+        { Row = newRow; Col = newRowLength; LastAttemptedCol = col }
       | _ ->
         { Row = newRow; Col = lastAttempedCol; LastAttemptedCol = lastAttempedCol }
     { editor with Cursor = newCursor }         
