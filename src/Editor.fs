@@ -66,24 +66,28 @@
     { editor with Cursor = { editor.Cursor with Col = 0 } }
 
   let removeChar editor =
+    let row = editor.Buffer.[editor.Cursor.Row]
     match editor.Cursor.Col with
     | 0 -> editor
+    | col when col = row.Length -> left editor
     | col -> 
+      let newCol = dec col
       { editor with
-          Cursor = { editor.Cursor with Col = dec col }
+          Cursor = { editor.Cursor with Col = newCol; LastAttemptedCol = newCol }
           Buffer = apply editor (fun line -> line.Remove(col, 1))
       }
   
   let insertChar editor char =
     let col = editor.Cursor.Col
+    let newCol = inc col
     { editor with
-        Cursor = { editor.Cursor with Col = inc col }
+        Cursor = { editor.Cursor with Col = newCol; LastAttemptedCol = newCol }
         Buffer = apply editor (fun line -> line.Insert(col, char)) 
     }
 
   let enter editor =
     { editor with
-        Cursor = { editor.Cursor with Col = 0; Row = inc editor.Cursor.Row }
+        Cursor = { Col = 0; Row = inc editor.Cursor.Row; LastAttemptedCol = 0 }
         Buffer = splitLine editor
     }
 
