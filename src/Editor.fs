@@ -17,6 +17,25 @@
       | i when i = editor.Cursor.Row -> func line
       | _ -> line)
       
+  let private joinLine editor =
+    let currentRow = editor.Cursor.Row
+    let currentRowLine = editor.Buffer.[currentRow]
+    let previousRow = dec editor.Cursor.Row
+
+    editor.Buffer |>
+    List.indexed |>
+    List.fold (fun acc elem -> 
+               if fst elem = currentRow then
+                 acc
+               else
+                 acc @
+                 match elem with
+                 | (index, line) when index = previousRow -> 
+                   [
+                     line + currentRowLine
+                   ]
+                 | (_, line) -> [line]) []
+      
   let private splitLine editor =
     editor.Buffer |>
     List.indexed |>
@@ -68,7 +87,13 @@
   let removeChar editor =
     let row = editor.Buffer.[editor.Cursor.Row]
     match editor.Cursor.Col with
-    | 0 -> editor
+    | col when col = 0 && editor.Cursor.Row = 0 -> editor
+    | 0 -> 
+      let previousRowLength = editor.Buffer.[dec editor.Cursor.Row].Length
+      { editor with
+          Cursor = { Row = dec editor.Cursor.Row; Col = previousRowLength; LastAttemptedCol = previousRowLength }
+          Buffer = joinLine editor
+      }
     | col when col = row.Length -> left editor
     | col -> 
       let newCol = dec col

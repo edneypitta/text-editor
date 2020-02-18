@@ -2,7 +2,7 @@
 open Editor
 open Util
 
-type Action = CursorMove | CharInserted | CharDeleted | Enter
+type Action = CursorMove | CharInserted | CharDeleted | Enter | LineRemoved
 
 let render editor = 
   Console.Clear ()
@@ -20,7 +20,9 @@ let handleInput editor =
   | ConsoleKey.DownArrow -> (down editor, CursorMove)
   | ConsoleKey.LeftArrow -> (left editor, CursorMove)
   | ConsoleKey.RightArrow -> (right editor, CursorMove)
-  | ConsoleKey.Backspace -> (removeChar editor, CharDeleted)
+  | ConsoleKey.Backspace -> 
+    let cursor = editor.Cursor.Col
+    (removeChar editor, if cursor = 0 then LineRemoved else CharDeleted)
   | ConsoleKey.Enter -> (enter editor, Enter)
   | _ -> (insertChar editor char, CharInserted)
 
@@ -46,7 +48,9 @@ let main _ =
     match action with
     | CharInserted | CharDeleted -> 
       writeRow editor.Buffer editor.Cursor.Row
-    | Enter ->
+    | LineRemoved ->
+      render editor
+    | Enter | LineRemoved ->
       let previousRow = dec editor.Cursor.Row
       let lastRow = dec editor.Buffer.Length
       for row in [previousRow..lastRow] do
